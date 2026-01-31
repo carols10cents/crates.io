@@ -32,11 +32,12 @@ pub async fn find_user(
 ) -> AppResult<Json<GetResponse>> {
     let mut conn = state.db_read_prefer_primary().await?;
 
-    use crate::schema::users::dsl::{gh_login, id};
+    use crate::schema::{oauth_github, users::dsl::id};
 
     let name = lower(&user_name);
     let user: User = User::query()
-        .filter(lower(gh_login).eq(name))
+        .inner_join(oauth_github::table)
+        .filter(lower(oauth_github::login).eq(name))
         .order(id.desc())
         .first(&mut conn)
         .await?;
